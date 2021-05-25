@@ -84,14 +84,14 @@ class Type(Enum):
     CLOSE_CARET = "(>).*"
     OPEN_CARET = "(<).*"
     IDENTIFIER = "\\b([a-zA-Z]{1}[0-9a-zA-Z_]{0,31})\\b.*"
-    STRING_LITERAL = '\"(\\.|[^\\"])*\"'
+    STRING_LITERAL = '"(\\.|[^\\"])*"'
     CHARACTER_LITERAL = r"\'(\\.|[^\\'])*\'"
 
 
 brackets = {
-    Type.CLOSE_PAREN: Type.OPEN_PAREN,  # ()
-    Type.CLOSE_BRACE: Type.OPEN_BRACE,  # []
-    Type.CLOSE_CURLY_BRACE: Type.OPEN_CURLY_BRACE,  # {}
+    Type.OPEN_PAREN: Type.CLOSE_PAREN,  # ()
+    Type.OPEN_BRACE: Type.CLOSE_BRACE,  # []
+    Type.OPEN_CURLY_BRACE: Type.CLOSE_CURLY_BRACE,  # {}
 }
 
 str_brackets = {
@@ -112,7 +112,7 @@ class Token:
         self.type = type
 
     def __str__(self):
-        return self.type.name + '\t\t' + self.value
+        return self.type.name + "\t\t" + self.value
 
     __repr__ = __str__
 
@@ -128,20 +128,20 @@ class CodeStack:
     def add(self, token):
         self.tokens.append(token)
 
-        if token.type in brackets.values():
-            self.stack.append(token)
         if token.type in brackets:
+            self.stack.append(token)
+        if token.type in brackets.values():
             if len(self.stack) == 0:
                 line_num, line_text = self.get_trouble_line(token.end)
-                raise Exception(
-                    f"Missing open brackets! line {line_num}:\n{line_text}")
-            elif brackets[token.type] == self.stack[-1].type:
+                raise Exception(f"Missing open brackets! line {line_num}:\n{line_text}")
+            elif token.type == brackets[self.stack[-1].type]:
                 self.stack.pop()
-            elif brackets[token.type] != self.stack[-1].type:
-                need_type = str_brackets[self.stack[-1].type]
+            elif token.type != brackets[self.stack[-1].type]:
+                need_type = str_brackets[brackets[self.stack[-1].type]]
                 line_num, line_text = self.get_trouble_line(token.end)
                 raise Exception(
-                    f"Incorrect close bracket! Must be \"{need_type}\"! line {line_num}:\n{line_text}")
+                    f'Incorrect close bracket! Must be "{need_type}"! line {line_num}:\n{line_text}'
+                )
             else:
                 self.stack.append(token)
 
@@ -151,8 +151,7 @@ class CodeStack:
         else:
             print(self.stack)
             line_num, line_text = self.get_trouble_line(self.stack[-1].begin)
-            raise Exception(
-                f"Missing close brackets! line {line_num}:\n{line_text}")
+            raise Exception(f"Missing close brackets! line {line_num}:\n{line_text}")
 
     def get_trouble_line(self, index):
         line_number = self.data.count("\n", 0, index)
@@ -163,9 +162,9 @@ class CodeStack:
 
 def get_token(string, begin):
     if begin < 0 or begin >= len(string):
-        raise IndexError(string, 'Index out of bounds: ' + begin)
+        raise IndexError(string, "Index out of bounds: " + begin)
     for type in Type:
-        pattern = r'.{' + str(begin) + '}' + type.value
+        pattern = r".{" + str(begin) + "}" + type.value
         match = re.match(pattern, string, re.DOTALL)
         if match:
             end = match.end(1)
@@ -176,7 +175,7 @@ def get_token(string, begin):
 
 
 def lex_java_file(file_name):
-    with open(file_name, 'r') as file:
+    with open(file_name, "r") as file:
         data = file.read()
         tokens = CodeStack(data)
 
