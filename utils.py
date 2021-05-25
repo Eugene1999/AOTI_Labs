@@ -135,6 +135,9 @@ class CodeStack:
                 line_num, line_text = self.get_trouble_line(token.end)
                 raise Exception(f"Missing open brackets! line {line_num}:\n{line_text}")
             elif token.type == brackets[self.stack[-1].type]:
+                if not self.is_valid_end():
+                    line_num, line_text = self.get_trouble_line(self.stack[-1].end)
+                    raise Exception(f"Missing semicolon! line {line_num}:\n{line_text}")
                 self.stack.pop()
             elif token.type != brackets[self.stack[-1].type]:
                 need_type = str_brackets[brackets[self.stack[-1].type]]
@@ -152,6 +155,16 @@ class CodeStack:
             print(self.stack)
             line_num, line_text = self.get_trouble_line(self.stack[-1].begin)
             raise Exception(f"Missing close brackets! line {line_num}:\n{line_text}")
+
+    def is_valid_end(self):
+        for t in self.tokens[::-1]:
+            if t.type == Type.SPACE:
+                continue
+            elif t.type == Type.SEMICOLON or t.type in str_brackets:
+                return True
+            else:
+                return False
+        return False
 
     def get_trouble_line(self, index):
         line_number = self.data.count("\n", 0, index)

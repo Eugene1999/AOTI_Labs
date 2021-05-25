@@ -11,8 +11,8 @@ public class RandomTester
    public static void throwDice() { 
 	    int index = 0; 
 		do { 
-			index = getRandomNumber(6); 
-			System.out.println(index); 
+			index = getRandomNumber(6);
+			System.out.println(index);
 		} 
 		while (index != 6); 
    }
